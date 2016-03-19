@@ -2,7 +2,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * @name        Poor Breadcrumb
+ * @name        Codeigniter Breadcrumb
  * @description Breadcrumb PHP Class, Breadcrumb Codeigniter Library
  * @author      Mixinix
  * @link        http://github.com/mixinix
@@ -31,18 +31,31 @@ Class Breadcrumb {
 	
 	private $template = [], $html = '', $data = [], $parser = false, $insert = [], $replace = [], $remove = [];
 	private $search = ['{uri}', '{title}', '{icon}'];
+	//public $config = [], $prefix = '', $suffix = '';
 	
 	public function __construct($parser = false)
 	{
 		$this->parser = $parser;
 	}
 
+	public function delimiters($prefix = '', $suffix = '')
+	{
+		$this->prefix = $prefix;
+		$this->suffix = $suffix;
+
+		return $this;
+	}
+	
 	public function add($arr = [])
 	{
 		if(is_array($arr))
+		{
 			$this->data[] = $arr;
+		}
 		else
+		{
 			$this->data[] = func_get_args();
+		}
 
 		return $this;
 	}
@@ -50,7 +63,9 @@ Class Breadcrumb {
 	public function replace($pos, $range, $arr = [])
 	{
 		if(is_array($arr))
+		{
 			$this->replace[] = ['pos' => (int) $pos, 'range' => (int) $range, 'data' => $arr];
+		}
 		else
 		{
 			$arr = func_get_args();
@@ -60,13 +75,16 @@ Class Breadcrumb {
 			array_shift($arr);
 			$this->replace[] = ['pos' => (int) $pos, 'range' => (int) $range, 'data' => $arr];
 		}
+
 		return $this;
 	}
 	
 	public function insert($pos, $arr = [])
 	{
 		if(is_array($arr))
+		{
 			$this->insert[] = ['pos' => (int) $pos, 'data' => $arr];
+		}
 		else
 		{
 			$arr = func_get_args();
@@ -74,38 +92,55 @@ Class Breadcrumb {
 			array_shift($arr);
 			$this->insert[] = ['pos' => (int) $pos, 'data' => $arr];
 		}
+
 		return $this;
 	}
 
 	public function remove($pos)
 	{
 		if(is_array($pos))
+		{
 			$this->remove = $pos;
+		}
 		else
+		{
 			$this->remove = func_get_args();
+		}
+
 		return $this;
 	}
 
 	private function calculate()
 	{
-		if(count($this->insert) != 0){
+		if(count($this->insert) != 0)
+		{
 			foreach($this->insert as $k => $v)
+			{
 				array_splice($this->data, $v['pos'], 0, array($v['data']));
+			}
 		}
 		
-		if(count($this->replace) != 0){
+		if(count($this->replace) != 0)
+		{
 			foreach($this->replace as $k => $v)
+			{
 				array_splice($this->data, $v['pos'], $v['range'], array($v['data']));
+			}
 		}
 		
-		if(count($this->remove) != 0){
-				foreach($this->remove as $k => $v)
+		if(count($this->remove) != 0)
+		{
+			foreach($this->remove as $k => $v)
+			{
+				if($v == -1)
 				{
-					if($v == -1)
-						array_pop($this->data);
-					else
-						unset($this->data[$v]);
+					array_pop($this->data);
 				}
+				else
+				{
+					unset($this->data[$v]);
+				}
+			}
 		}
 		
 		return $this->data;
@@ -114,16 +149,24 @@ Class Breadcrumb {
 	private function build($arr = [])
 	{
 		$html = [];
+
 		foreach($arr as $k => $v)
 		{
 			if(count($v) == 1)
+			{
 				$html[] = '<li class="active">'.$v[0].'</li>';
+			}
 			else if(count($v) == 3)
+			{
 				$html[] = '<li><span class="'.$v[2].'"></span>&nbsp;<a href="'.$v[0].'">'.$v[1].'</a></li>';
+			}
 			else
+			{
 				$html[] = '<li><a href="'.$v[0].'">'.$v[1].'</a></li>';
+			}
 		}
-		$html = implode("\n", $html);
+
+		$html = implode("", $html);
 
 		return $html;
 	}
@@ -131,6 +174,7 @@ Class Breadcrumb {
 	public function template($arr = [])
 	{
 		$this->template = $arr;
+
 		return $this;
 	}
 
@@ -140,30 +184,50 @@ Class Breadcrumb {
 		foreach($this->template as $k => $v)
 		{
 			if(count($v) == $length)
+			{
 				$tpl[$length] = ['tpl' => $k, 'search' => $v];
+			}
 		}
+
 		return $tpl[$length];
 	}
 	
 	public function get()
 	{
+		$output = '';
 		if(count($this->template) != 0)
-		{	$str = '';
+		{
+			$str = '';
+
 			foreach($this->calculate() as $k => $v)
 			{
 				if(count($v) == 1)
+				{
 					$str .= str_replace($this->buildTemplate(1)['search'], $v, $this->buildTemplate(1)['tpl']);
+				}
 				else if(count($v) == 2)
+				{
 					$str .= str_replace($this->buildTemplate(2)['search'], $v, $this->buildTemplate(2)['tpl']);
+				}
 				else if(count($v) == 3)
+				{
 					$str .= str_replace($this->buildTemplate(3)['search'], $v, $this->buildTemplate(3)['tpl']);
+				}
 				else
+				{
 					$str .= str_replace($this->buildTemplate(4)['search'], $v, $this->buildTemplate(4)['tpl']);
+				}
 			}
-			return $str;
+			$output = $str;
 		}
 		else
-			return $this->build($this->calculate());
+		{
+			$output = $this->build($this->calculate());
+		}
+		if(isset($this->suffix))
+			return $this->prefix."\n".$output."\n".$this->suffix;
+		else
+			return $output;
 	}
 	
 	/*
@@ -172,25 +236,35 @@ Class Breadcrumb {
 	public function parser($str = null)
 	{
 		if(!is_null($str))
+		{
 			$this->html = $str;
+		}
 		
 		$html = [];
 		
-		foreach($this->data as $key => $v)
+		foreach($this->calculate() as $key => $v)
+		{
 			$html[] = str_replace($this->search, $v, $this->html);
+		}
 
 		$html = implode("\n", $html);
 
 		if($this->parser)
+		{
 			return $html;
+		}
 	}
 	
 	public function search($arr)
 	{
 		if(is_array($arr))
+		{
 			$this->search = $arr;
+		}
 		else
+		{
 			$this->search = func_get_args();
+		}
 
 		return $this;
 	}
@@ -198,6 +272,7 @@ Class Breadcrumb {
 	public function html($html)
 	{
 		$this->html = $html;
+
 		return $this;
 	}
 }
