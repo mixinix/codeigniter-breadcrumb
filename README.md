@@ -1,2 +1,2 @@
-# codeigniter-breadcrumb
-Poor BreadCrumb for Codeigniter
+# Simple Breadcrumb
+Simple PHP Breadcrumb
