@@ -1,0 +1,8 @@
+{
+    "name": "mixinix/breadcrumb",
+    "description": "Simple Breadcrumb",
+    "require": {
+        "php": ">=5.3.0",
+        "codeigniter/breadcrumb": "1.*"
+    }
+}
